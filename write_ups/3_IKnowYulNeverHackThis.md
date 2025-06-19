@@ -92,4 +92,4 @@ Since the assembly block forgets to update the length of the array, the size is 
 
 
 
-Bonus Points if you noticed that the game cannot function properly after the first time.
+- Bonus Points if you noticed that the game cannot function properly after the first time. 
