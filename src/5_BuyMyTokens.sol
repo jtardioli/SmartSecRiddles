@@ -24,7 +24,7 @@ contract BuyMyTokens {
         tokenPrices[token3] = 0.3 ether;
     }
 
-    function _checkPurchasingPower(uint256 _amountOfEtherAvailable, uint256 _amount, uint256 _price) internal {
+    function _checkPurchasingPower(uint256 _amountOfEtherAvailable, uint256 _amount, uint256 _price) internal pure {
         uint256 cost = _price * _amount;
         require(cost >= _amountOfEtherAvailable, "dont be that guy; pay for your tokens");
     }
