@@ -1,7 +1,5 @@
 # IKnowYulNeverHackThis Solution
-
 Hopefully you picked the winning team in one try. The correct way to steal all of the funds was to join the read team. Here is the solution:
-
 ```
 function test_GetThisPassing_3() public {
     address hacker = address(0xBAD);
@@ -16,9 +14,7 @@ function test_GetThisPassing_3() public {
     assertEq(hacker.balance, 10 ether);
 }
 ```
-
 To win you simply need to:
-
 1. Join the Red Team.
 
 2. Call `defineWinners()` with the parameter set to false.
@@ -26,7 +22,6 @@ To win you simply need to:
 Winning this challenge is fairly easy. However, understanding how you won is far more important. To get a grasp on how joining the red team allows you to win this challenge, lets start by viewing what happens when you join the blue team.
 
 Here is the code from that section with comments explaining each lines utility:
-
 ```
 // creates an empty address array in memory with a size of one
 address[] memory winners = new address[](1);
@@ -51,13 +46,13 @@ if (_isBlueTeam) {
             // gets the memory location of the word after the free memory pointer
             let newMsize := add( freeMem, 0x20 )
 
-            /**
+            /** 
             if the free memory pointer is not equal to the next available memory location after the array, we need to move each memory variable one word further. This will prevent us from overwriting an existing variable if they exist. (In this scenario they do not exist, but I needed to add more code to throw you off :)
             */
             if iszero( eq( freeMem, nextMemoryLocation) ){
                 let currVal
                 let prevVal
-
+            
                 // loop through the variables that need to be rewritten
                 for { let i := nextMemoryLocation } lt(i, newMsize) { i := add(i, 0x20) } {
                     // get the current variables value from memory
@@ -66,7 +61,7 @@ if (_isBlueTeam) {
                     mstore(i, prevVal)
                     // save the current value to the stack
                     prevVal := currVal
-
+                
                 }
             }
 
@@ -83,19 +78,18 @@ if (_isBlueTeam) {
             mstore(0x40, newMsize )
         }
     }
-}
 ```
 
 We now know the proper way to update the winnings array. Although, admittedly, there are far more efficient ways to do so for this particular function.
 
 The issue is in the code of the else statement (the flow if the red team is the winning team) stems from missing the following line of code:
-
 ```
 mstore( location, length )
 ```
-
 Although we do update the `length` variable, we only update it on the stack, and forget to store it in memory. All of the addresses were written to memory, but because the length never gets updated it keeps being over written by the next address. We were the last address in the red team array so our address is written to the `winnings` array at the end of the for loop.
 
 Since the assembly block forgets to update the length of the array, the size is still one. This causes the calculation for the share of winnings to assign the entire balance to `shareOfPrize`. This sends the entirety of the winnings to our address.
+
+
 
 Bonus Points if you noticed that the game cannot function properly after the first time.
