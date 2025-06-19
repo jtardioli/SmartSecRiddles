@@ -4,13 +4,11 @@ pragma solidity ^0.8.22;
 import "../mocks/marqToken.sol";
 
 contract BuyMyTokens {
-
     MarqToken token1;
     MarqToken token2;
     MarqToken token3;
     MarqToken[] tokens;
-    mapping(MarqToken=>uint256) tokenPrices;
-
+    mapping(MarqToken => uint256) tokenPrices;
 
     constructor(address _token1, address _token2, address _token3) {
         token1 = MarqToken(_token1);
@@ -29,18 +27,15 @@ contract BuyMyTokens {
         require(cost >= _amountOfEtherAvailable, "dont be that guy; pay for your tokens");
     }
 
-
     function purchaseTokens(uint256[] memory _amounts) external payable {
         require(_amounts.length == 3, "There are 3 tokens");
-        for(uint256 i; i < 3; i++) {
+        for (uint256 i; i < 3; i++) {
             MarqToken token = tokens[i];
             uint256 amount = _amounts[i];
             uint256 price = tokenPrices[token];
             _checkPurchasingPower(msg.value, amount, price);
-            token.mint(amount * 10**18);
-            token.transfer(msg.sender, amount * 10**18);
+            token.mint(amount * 10 ** 18);
+            token.transfer(msg.sender, amount * 10 ** 18);
         }
     }
-
-
 }
