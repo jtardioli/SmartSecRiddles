@@ -12,9 +12,9 @@ The actual vulnerability is a cross contract reentrancy attack. Nowadays, most d
 
 Since the two smart contracts do not share the same state for the reentrancy guard modifier, they are not aware when the other contract is locked. To fix this issue, I recommend that protocols with multiple smart contracts should share the state of the reentrancy guard modifier by creating a separate smart contract that they both read and write to the state of the contract.
 
-The basics of the rentrancey revolves around claiming twice, and taking advantage of an NFT's `safeTransforFrom()` function call to `onERC721Received()` in the receiving smart contract. We will go over the affected code in more depth later, but for now let's look into how we perform the exploit.
+The basics of the reentrancy revolves around claiming twice, and taking advantage of an NFT's `safeTransferFrom()` function call to `onERC721Received()` in the receiving smart contract. We will go over the affected code in more depth later, but for now let's look into how we perform the exploit.
 
-To exploit the vulnerability, we need a separate smart contract to perform the rentrancey. Let's take a look at my implementation of it:
+To exploit the vulnerability, we need a separate smart contract to perform the reentrancy. Let's take a look at my implementation of it:
 ```
 // SPDX-License-Identifier: UNLICENSED
 pragma solidity ^0.8.22;
@@ -118,7 +118,7 @@ function unstake(uint256 _tokenId, bool claim) external guard {
         rewarder.claim(msg.sender);
     }
 
-    // we update the state before transfering the NFT out of the protocol
+    // we update the state before transferring the NFT out of the protocol
     isStaking[msg.sender] = false;
     userStake = StakeData(0, 0, 0);
 
