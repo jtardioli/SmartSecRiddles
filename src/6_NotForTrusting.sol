@@ -114,6 +114,7 @@ contract Rewarder is IStaking{
     function claim(address _for) external guard {
         bool isStaking = staking.isStaking(_for);
         StakeData memory userStake = staking.getStakerData(msg.sender);
+        require(isStaking, "gotta stake to make money");
         require(msg.sender == address(staking), "not your rewards");
         require(block.number >= userStake.stakeStart + userStake.stakeDuration, "you know about vm.roll(), right?");
         require(!hasClaimed[msg.sender], "no double dipping");
