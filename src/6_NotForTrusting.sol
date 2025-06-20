@@ -14,7 +14,6 @@ interface IStaking {
 }
 
 contract Staking is IERC721Receiver, IStaking {
-
     uint256 locked;
     NFT nft;
     Rewarder rewarder;
@@ -34,9 +33,11 @@ contract Staking is IERC721Receiver, IStaking {
     }
 
     function stake(uint256 _tokenId, uint256 _timeLocked) external guard {
+        // Note - the _timeLocked has to be 100
         require(_timeLocked > 99, "locked too short");
         require(_timeLocked < 101, "locked too long");
         require(!isStaking[msg.sender], "One NFT at a time");
+        // @audit-issue probably not safe - 0 or nft that doesnt exist yet
         nft.safeTransferFrom(msg.sender, address(this), _tokenId);
         stakeData[msg.sender] = StakeData(block.number, _timeLocked, _tokenId);
         isStaking[msg.sender] = true;
@@ -45,9 +46,11 @@ contract Staking is IERC721Receiver, IStaking {
     function unstake(uint256 _tokenId, bool claim) external guard {
         require(isStaking[msg.sender], "Stake first");
         StakeData memory userStake = stakeData[msg.sender];
-        require(block.number >= userStake.stakeStart + userStake.stakeDuration, "patience is my least favorite virute too");
+        require(
+            block.number >= userStake.stakeStart + userStake.stakeDuration, "patience is my least favorite virute too"
+        );
 
-        if(claim) {
+        if (claim) {
             rewarder.claim(msg.sender);
         }
         nft.safeTransferFrom(address(this), msg.sender, _tokenId);
@@ -59,21 +62,17 @@ contract Staking is IERC721Receiver, IStaking {
         return IERC721Receiver.onERC721Received.selector;
     }
 
-    function getStakerData(address _user) external view returns(StakeData memory) {
+    function getStakerData(address _user) external view returns (StakeData memory) {
         return stakeData[_user];
     }
-
-
 }
 
-contract Rewarder is IStaking{
-
+contract Rewarder is IStaking {
     address admin;
     uint256 locked;
     Staking staking;
     MarqToken token;
     mapping(address => bool) hasClaimed;
-
 
     modifier guard() {
         require(locked == 0, "No easy reentrancies here");
@@ -88,16 +87,21 @@ contract Rewarder is IStaking{
     }
 
     function setStaker(address _staking) external guard {
+        // @audit-issue tx.orgin is not safe
         require(tx.origin == admin, "you are not the admin");
-        require(_staking != address(0), "we dont want C4 judges to be spamed with dumb findings"); 
+        require(_staking != address(0), "we dont want C4 judges to be spamed with dumb findings");
         staking = Staking(_staking);
     }
 
     function setAdmin(address _admin) external guard {
         require(msg.sender == admin, "you are not the admin");
-        require(_admin != address(0), "we dont want C4 judges to be spamed with dumb findings"); 
+        require(_admin != address(0), "we dont want C4 judges to be spamed with dumb findings");
         admin = _admin;
     }
+
+    /* 
+    @question what is the difference between these 2 claim functions:
+    */
 
     function claim() external guard {
         bool isStaking = staking.isStaking(msg.sender);
@@ -108,11 +112,11 @@ contract Rewarder is IStaking{
         hasClaimed[msg.sender] = true;
         token.mint(1000 ether);
         token.transfer(msg.sender, 1000 ether);
-        
     }
 
     function claim(address _for) external guard {
         bool isStaking = staking.isStaking(_for);
+        // @audit-issue - You are passing the wrong address to getStakerData
         StakeData memory userStake = staking.getStakerData(msg.sender);
         require(msg.sender == address(staking), "not your rewards");
         require(block.number >= userStake.stakeStart + userStake.stakeDuration, "you know about vm.roll(), right?");
@@ -122,5 +126,6 @@ contract Rewarder is IStaking{
         token.mint(1000 ether);
         token.transfer(_for, 1000 ether);
     }
-
 }
+
+// @audit-ok - What if I claim from both contracts: They both use the staker contracts Staker Data as the source of truth
