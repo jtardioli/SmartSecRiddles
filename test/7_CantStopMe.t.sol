@@ -1,18 +1,16 @@
 // SPDX-License-Identifier: UNLICENSED
 pragma solidity ^0.8.22;
 
-import { Test, console } from "forge-std/Test.sol";
-import { TrustyOracle, Auction } from "../src/7_CantStopMe.sol";
-import { CantStopMeHelper } from "../test_helper/7_CantStopMeSetup.sol";
+import {Test, console} from "forge-std/Test.sol";
+import {TrustyOracle, Auction} from "../src/7_CantStopMe.sol";
+import {CantStopMeHelper} from "../test_helper/7_CantStopMeSetup.sol";
 import "../mocks/NFT.sol";
-
 
 contract CantStopMe is Test {
     CantStopMeHelper public dontpeak;
     Auction public auction;
     TrustyOracle public oracle;
     NFT public nft;
-
 
     function setUp() public {
         dontpeak = new CantStopMeHelper();
@@ -22,14 +20,12 @@ contract CantStopMe is Test {
     }
 
     function test_GetThisPassing_7() public {
-
         address hacker = address(0xBAD);
 
         vm.startPrank(hacker);
-        
+        auction.winAuction{value: 2 ether}();
         vm.stopPrank();
 
         dontpeak.checkIfPasses();
     }
-
 }
