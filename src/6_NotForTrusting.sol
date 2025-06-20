@@ -87,7 +87,7 @@ contract Rewarder is IStaking {
     }
 
     function setStaker(address _staking) external guard {
-        // @audit-issue tx.orgin is not safe
+        // @audit-ok tx.orgin is not safe: as long as this contract doesn't call anything its fine
         require(tx.origin == admin, "you are not the admin");
         require(_staking != address(0), "we dont want C4 judges to be spamed with dumb findings");
         staking = Staking(_staking);
@@ -100,7 +100,9 @@ contract Rewarder is IStaking {
     }
 
     /* 
-    @question what is the difference between these 2 claim functions:
+    @answered what is the difference between these 2 claim functions:
+        Once is meant to be called by the user
+        The other is meant to be called by the staker contract
     */
 
     function claim() external guard {
