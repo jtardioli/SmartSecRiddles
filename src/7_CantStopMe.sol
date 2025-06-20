@@ -143,7 +143,7 @@ contract TrustyOracle {
         auction.updatePriceDifferential(minPrice, maxPrice);
     }
 
-     // adds current price to  
+     // adds current price to the price history
     function addPriceToHistory() external {
         require(msg.sender == address(auction));
         uint256 lastPrice = auction.lastPrice();
